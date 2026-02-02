@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-PowerTraderService-5660671b-7aac-4a02-b899-b2da1e879770</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.2" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.4.0" />
+    <PackageReference Include="CsvHelper" Version="33.0.1" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Reference Include="PowerService">
+      <HintPath>..\lib\PowerService.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

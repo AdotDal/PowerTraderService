@@ -1,0 +1,7 @@
+reports/
+PowerTrader/reports/
+bin/
+obj/
+PowerTrader/bin/
+PowerTrader/obj/
+.DS_Store
