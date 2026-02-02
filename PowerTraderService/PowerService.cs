@@ -24,8 +24,9 @@ namespace PowerTrader
         {
             _log = log;
 
-            string outputDirectory = config["FilePath"] ?? "./reports";
-            _intervalMinutes = ParseInterval(config["ScheduleIntervalMinutes"]);
+            string? configuredPath = config["FilePath"];
+            string outputDirectory = string.IsNullOrWhiteSpace(configuredPath) ? "./reports" : configuredPath;
+            _intervalMinutes = ParseInterval(config["ScheduleIntervalMinutes"] ?? string.Empty);
 
             Directory.CreateDirectory(outputDirectory);
 
@@ -45,12 +46,27 @@ namespace PowerTrader
             // Run once on startup
             await GenerateReportAsync();
 
+            DateTime nextRun = HelperTimeZone.GetLondonNow().AddMinutes(_intervalMinutes);
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(_intervalMinutes), stoppingToken);
-                    await GenerateReportAsync();
+                    DateTime now = HelperTimeZone.GetLondonNow();
+                    if (now < nextRun)
+                    {
+                        await Task.Delay(nextRun - now, stoppingToken);
+                        continue;
+                    }
+
+                    // Catchup when behind schedule to avoid missing scheduled reports
+                    do
+                    {
+                        await GenerateReportAsync();
+                        nextRun = nextRun.AddMinutes(_intervalMinutes);
+                        now = HelperTimeZone.GetLondonNow();
+                    }
+                    while (now >= nextRun && !stoppingToken.IsCancellationRequested);
                 }
                 catch (TaskCanceledException)
                 {
@@ -99,6 +115,10 @@ namespace PowerTrader
             catch (PowerServiceException ex)
             {
                 _log.LogWarning(ex, "Error not able to get trades from PowerService");
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "Unexpected error while processing positions");
             }
         }
 
